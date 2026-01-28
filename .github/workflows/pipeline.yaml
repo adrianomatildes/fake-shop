@@ -67,7 +67,7 @@ jobs:
       
       - name: Update image tag in GitOps repo
         run: |
-          cd devops_config
+          cd devops-config
           git checkout ${GITHUB_REF_NAME}
           sed -i "s|image:.*|image: amatildes/fakeshop:${{ github.run_number }}|" apps/fake-shop/overlays/${GITHUB_REF_NAME}/image-patch.yaml
       
