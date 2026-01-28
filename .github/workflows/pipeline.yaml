@@ -1,0 +1,91 @@
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
+name: Esteira CI/CD
+
+on:
+  push:
+    branches:
+      - dev
+      - hml
+      - prd
+
+jobs:
+  esteira-devops:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+        # -------------------------
+        # TESTES
+        # -------------------------
+      - name: Run unit tests
+        run: |
+          pip install -r src/requirements.txt
+          pytest || true
+
+      # - name: SonarQube Scan
+      #   uses: sonarsource/sonarqube-scan-action@v2
+      #   env:
+      #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      #     SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+      #     SONAR_SCANNER_OPTS: 
+      #       -Dsonar.ws.timeout=60 
+      #       -Dsonar.web.http.header.ngrok-skip-browser-warning=true
+
+      # - name: SonarQube Quality Gate
+      #   uses: sonarsource/sonarqube-quality-gate-action@v1
+      #   env:
+      #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      # - name: Build image
+      #   run: |
+      #     docker build -t amatildes/fakeshop:${{ github.run_number }} -f src/Dockerfile src
+
+      # - name: Trivy image scan
+      #   uses: aquasecurity/trivy-action@master
+      #   with:
+      #     image-ref: amatildes/fakeshop:${{ env.TAG }}
+      #     severity: CRITICAL,HIGH
+      #     exit-code: 1
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+            username: ${{ secrets.DOCKER_USER }}
+            password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Define image tag
+        run: |
+          if [[ "${GITHUB_REF_NAME}" == "prd" ]]; then
+            TAG="${{ github.run_number }}"
+          else
+            TAG="${{ github.run_number }}-${GITHUB_REF_NAME}"
+          fi
+
+          echo "TAG=$TAG" >> $GITHUB_ENV
+        
+      - name: Build image
+        run: |
+          docker build -t amatildes/fakeshop:${{ env.TAG }} -f src/Dockerfile src
+      - name: Push image
+        run: |
+          docker push amatildes/fakeshop:${{ env.TAG }}
+
+      - name: Clone GitOps repo
+        run: |
+          git clone https://${{ secrets.AZURE_DEVOPS_PAT }}@dev.azure.com/adrianomatildes/devops-config/_git/devops-config
+
+      - name: Update image tag in GitOps repo
+        run: |
+          cd devops-config
+          git checkout ${GITHUB_REF_NAME}
+          sed -i "s|image:.*|image: amatildes/fakeshop:${{ env.TAG }}|" apps/fake-shop/overlays/${GITHUB_REF_NAME}/image-patch.yaml
+
+      - name: Commit and push changes
+        run: |
+          cd devops-config
+          git config user.email "ci@github.com"
+          git config user.name "github-actions"
+          git add .
+          git commit -m "fake-shop: update image to ${{ env.TAG }} (${GITHUB_REF_NAME})"
+          git push
