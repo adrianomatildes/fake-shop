@@ -65,16 +65,35 @@ jobs:
         run: |
           git clone https://${{ secrets.AZURE_DEVOPS_PAT }}@dev.azure.com/adrianomatildes/devops-config/_git/devops-config
       
-      - name: Update image tag in GitOps repo
+      - name: Commit and push change GitOps repo
         run: |
           cd devops-config
-          sed -i "s|image:.*|image: amatildes/fakeshop:${{ github.run_number }}|" apps/fake-shop/overlays/dev/image-patch.yaml
-      
-      - name: Commit and push change
-        run: |
-          cd devops-config
+
+          BRANCH=${GITHUB_REF#refs/heads/}
+          case "$BRANCH" in
+            dev)
+              ENV=dev
+              ;;
+            hml)
+              ENV=hml
+              ;;
+            prd)
+              ENV=prd
+              ;;
+            *)
+              echo "Branch $BRANCH not allowed for deployment"
+              exit 1
+              ;;
+          esac
+
+          git checkout $ENV
+
+          sed -i "s|image:.*|image: amatildes/fakeshop:${{ github.run_number }}|" apps/fake-shop/overlays/$ENV/image-patch.yaml
+          
+
+
           git config user.email "ci@github.com"
           git config user.name "github-actions"
           git add .
-          git commit -m "fake-shop: update image to ${{ github.run_number }}"
+          git commit -m "fake-shop: update image to ${{ github.run_number }} ($ENV)"
           git push
