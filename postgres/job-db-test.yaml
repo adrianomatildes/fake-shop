@@ -1,0 +1,21 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: db-connection-test
+  namespace: app-demo
+spec:
+  backoffLimit: 1
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: db-test
+          image: postgres:17
+          envFrom:
+            - secretRef:
+                name: db-credentials
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              echo "Testando conexão com o banco..."
+              psql "$DATABASE_URL" -c "SELECT 'K3D CONNECTED' as status, NOW();"
