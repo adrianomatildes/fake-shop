@@ -69,7 +69,16 @@ jobs:
         run: |
           cd devops-config
           git checkout ${GITHUB_REF_NAME}
-          sed -i "s|image:.*|image: amatildes/fakeshop:${{ github.run_number }}|" apps/fake-shop/overlays/${GITHUB_REF_NAME}/image-patch.yaml
+
+
+          if [[ "${GITHUB_REF_NAME}" == "prd" ]]; then
+          TAG="${{ github.run_number }}"
+          else
+          TAG="${{ github.run_number }}-${GITHUB_REF_NAME}"
+          fi
+
+
+          sed -i "s|image:.*|image: amatildes/fakeshop:${TAG}|" apps/fake-shop/overlays/${GITHUB_REF_NAME}/image-patch.yaml
       
       - name: Commit and push changes
         run: |
