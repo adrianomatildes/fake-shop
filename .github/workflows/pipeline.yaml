@@ -4,7 +4,9 @@ name: Esteira CI/CD
 on:
   push:
     branches:
-      - devops
+      - dev
+      - hml
+      - prd
 
 jobs:
   esteira-devops:
