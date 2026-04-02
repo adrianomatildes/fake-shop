@@ -1,7 +1,9 @@
+
 # Fake Shop
 
 ## Arquitetura & Deploy
-Este projeto demonstra uma pipeline GitOps completa:
+
+### Arquitetura
 
 ![Arquitetura GitOps](docs/arquitetura-fakeshop.png)
 *Fluxo multi-repo: GitHub (público) → Azure DevOps (privado) → ArgoCD → K3s*
@@ -14,20 +16,13 @@ Este projeto demonstra uma pipeline GitOps completa:
 
 ### Fluxo de Deploy
 
-Promoção de código entre branches dispara deploy automático:
-
-| Branch | Ambiente | Namespace K8s |
-|--------|----------|---------------|
+| Branch | Ambiente | Namespace |
+|--------|----------|-----------|
 | `dev`  | Desenvolvimento | `dev` |
 | `hml`  | Homologação | `hml` |
 | `prd`  | Produção | `prd` |
 
-**Processo:**
-1. Feature branch → PR para `dev` → merge dispara pipeline → deploy `dev`
-2. PR `dev` → `hml` → merge dispara pipeline → deploy `hml`
-3. PR `hml` → `prd` → merge dispara pipeline → deploy `prd`
-
-Cada merge atualiza o overlay correspondente no `devops-config`, e o ArgoCD sincroniza o ambiente específico.
+Merge na branch dispara pipeline → atualiza `devops-config` → ArgoCD synca.
 
 ### Status do Ambiente
 
@@ -45,18 +40,16 @@ Cada merge atualiza o overlay correspondente no `devops-config`, e o ArgoCD sinc
 
 ### Como Executar Local
 
-> **Nota:** Este repo contém apenas a aplicação. O deploy completo requer o [projetos-devops](https://github.com/adrianomatildes/projetos-devops) para setup da infraestrutura.
-
-Pré-requisitos: K3s, ArgoCD, kubectl configurado
-
+**Opção 1: Deploy Direto (Demonstração Rápida)**
 ```bash
-# Aplique o ApplicationSet
-kubectl apply -f https://dev.azure.com/.../applicationset-fakeshop.yaml
-
-# Acesse
-kubectl port-forward svc/fake-shop -n dev 8080:80
+kubectl apply -k k8s/
+kubectl port-forward svc/fake-shop 8080:80
 curl localhost:8080
 ```
+### Opção 2: GitOps Completo
+- Suba K3s e ArgoCD
+- Configure acesso ao repo privado devops-config
+- Aplique o ApplicationSet do devops-config
 
 ## Variável de Ambiente
 | Variável                   | Descrição                             |
