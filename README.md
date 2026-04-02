@@ -1,8 +1,10 @@
 # Fake Shop
 
 ## Arquitetura & Deploy
-
 Este projeto demonstra uma pipeline GitOps completa:
+
+![Arquitetura GitOps](docs/arquitetura-fakeshop.png)
+*Fluxo multi-repo: GitHub (público) → Azure DevOps (privado) → ArgoCD → K3s*
 
 ### Stack
 - **App:** Python Flask + PostgreSQL
@@ -11,10 +13,21 @@ Este projeto demonstra uma pipeline GitOps completa:
 - **Infra:** K3s local com Kustomize overlays
 
 ### Fluxo de Deploy
-1. Push na branch `main` dispara GitHub Actions
-2. Pipeline builda imagem Docker e atualiza tag em `devops-config`
-3. ArgoCD detecta mudança e synca automaticamente
-4. Aplicação deployada no namespace `dev`
+
+Promoção de código entre branches dispara deploy automático:
+
+| Branch | Ambiente | Namespace K8s |
+|--------|----------|---------------|
+| `dev`  | Desenvolvimento | `dev` |
+| `hml`  | Homologação | `hml` |
+| `prd`  | Produção | `prd` |
+
+**Processo:**
+1. Feature branch → PR para `dev` → merge dispara pipeline → deploy `dev`
+2. PR `dev` → `hml` → merge dispara pipeline → deploy `hml`
+3. PR `hml` → `prd` → merge dispara pipeline → deploy `prd`
+
+Cada merge atualiza o overlay correspondente no `devops-config`, e o ArgoCD sincroniza o ambiente específico.
 
 ### Status do Ambiente
 
@@ -31,7 +44,10 @@ Este projeto demonstra uma pipeline GitOps completa:
 └── docs/                   # Evidências
 
 ### Como Executar Local
-Pré-requisitos: K3s, ArgoCD, kubectl
+
+> **Nota:** Este repo contém apenas a aplicação. O deploy completo requer o [projetos-devops](https://github.com/adrianomatildes/projetos-devops) para setup da infraestrutura.
+
+Pré-requisitos: K3s, ArgoCD, kubectl configurado
 
 ```bash
 # Aplique o ApplicationSet
