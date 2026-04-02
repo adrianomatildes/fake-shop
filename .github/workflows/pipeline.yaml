@@ -39,12 +39,12 @@ jobs:
       #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       # - name: Build image
       #   run: |
-      #     docker build -t amatildes/fakeshop:${{ github.run_number }} -f src/Dockerfile src
+      #     docker build -t adrianomatildes01/fakeshop:${{ github.run_number }} -f src/Dockerfile src
 
       # - name: Trivy image scan
       #   uses: aquasecurity/trivy-action@master
       #   with:
-      #     image-ref: amatildes/fakeshop:${{ env.TAG }}
+      #     image-ref: adrianomatildes01/fakeshop:${{ env.TAG }}
       #     severity: CRITICAL,HIGH
       #     exit-code: 1
 
@@ -66,10 +66,10 @@ jobs:
         
       - name: Build image
         run: |
-          docker build -t amatildes/fakeshop:${{ env.TAG }} -f src/Dockerfile src
+          docker build -t adrianomatildes01/fakeshop:${{ env.TAG }} -f src/Dockerfile src
       - name: Push image
         run: |
-          docker push amatildes/fakeshop:${{ env.TAG }}
+          docker push adrianomatildes01/fakeshop:${{ env.TAG }}
 
       - name: Clone GitOps repo
         run: |
@@ -79,7 +79,7 @@ jobs:
         run: |
           cd devops-config
           git checkout ${GITHUB_REF_NAME}
-          sed -i "s|image:.*|image: amatildes/fakeshop:${{ env.TAG }}|" apps/fake-shop/overlays/${GITHUB_REF_NAME}/image-patch.yaml
+          sed -i "s|image:.*|image: adrianomatildes01/fakeshop:${{ env.TAG }}|" apps/fake-shop/overlays/${GITHUB_REF_NAME}/image-patch.yaml
 
       - name: Commit and push changes
         run: |
