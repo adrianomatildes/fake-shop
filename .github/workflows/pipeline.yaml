@@ -9,7 +9,7 @@ on:
       - prd
 
 jobs:
-  esteira-devops:
+  esteira-ci-devops:
     runs-on: ubuntu-latest
 
     steps:
