@@ -45,9 +45,8 @@ Merge na branch dispara pipeline → atualiza `devops-config` → ArgoCD synca.
 kubectl apply -k k8s/
 kubectl port-forward svc/fake-shop 8080:80
 curl localhost:8080
-Teste
-teste
-
+Feito
+Feito 
 ```
 ### Opção 2: GitOps Completo
 - Suba K3s e ArgoCD
