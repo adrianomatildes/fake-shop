@@ -47,7 +47,7 @@ kubectl port-forward svc/fake-shop 8080:80
 curl localhost:8080
 Teste
 teste
-Teste
+
 ```
 ### Opção 2: GitOps Completo
 - Suba K3s e ArgoCD
